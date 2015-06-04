@@ -57,7 +57,7 @@
             $scope.selectedResources = selectedResources;
             $scope.showResources = false;
 
-            eshipGrid.getEshipGrid('/eship-grid.csv')
+            eshipGrid.getEshipGrid('eship-grid.csv')
                 .then(function (grid) {
                     $scope.grid = grid;
                 });
