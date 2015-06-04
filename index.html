@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+    <meta charset="UTF-8">
+    <title>INSITE BizGrid</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body ng-controller="mainController">
+    <div class="container">
+        <div class="page-header">
+            <h1>INSITE BizGrid</h1>
+        </div>
+
+        <h2>Select Stage</h2>
+        <div class="radio" ng-if="grid.stages" ng-repeat="(stage, needs) in grid.stages">
+            <label>
+                <input type="radio" name="selectedStage" ng-model="selected.stage" ng-value="stage">
+                {{ stage }}
+            </label>
+        </div>
+
+        <div ng-if="selected.stage">
+            <h2>{{ selected.stage }} Needs</h2>
+
+            <div class="checkbox" ng-if="grid.stages[selected.stage]" ng-repeat="(need, resources) in grid.stages[selected.stage]">
+                <label>
+                    <input type="checkbox" ng-name="{{ need }}" ng-model="selected.needs[need]" ng-value="need">
+                    {{ need }}
+                </label>
+            </div>
+        </div>
+
+        <div>
+            <h2 ng-if="showResources">Resources</h2>
+
+            <div ng-repeat="(resource, details) in selectedResources()">
+                <h4><a ng-href="{{ ::details['URL'] }}">{{ resource }}</a> ({{ details['Affiliation'] }})</h4>
+                <p>{{ ::details['Description'] }}</p>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.1/papaparse.min.js"></script>
+    <script type="text/javascript">
+        var app = angular
+            .module('app', [])
+            .controller('mainController', mainController)
+            .factory('eshipGrid', eshipGrid)
+            ;
+
+        mainController.$inject = ['$scope', 'eshipGrid'];
+        function mainController ($scope, eshipGrid) {
+            $scope.selected = {
+                stage: '',
+                needs: {}
+            }
+            $scope.selectedResources = selectedResources;
+            $scope.showResources = false;
+
+            eshipGrid.getEshipGrid('/eship-grid.csv')
+                .then(function (grid) {
+                    $scope.grid = grid;
+                });
+
+            function selectedResources() {
+                var resources = {};
+                $scope.showResources = false;
+                angular.forEach($scope.selected.needs, function (selected, need) {
+                    angular.forEach($scope.grid.stages[$scope.selected.stage][need], function (resource) {
+                        if (selected && undefined !== $scope.grid.resources[resource]) {
+                            resources[resource] = $scope.grid.resources[resource];
+                            $scope.showResources = true;
+                        }
+                    });
+                });
+                return resources;
+            }
+        }
+
+        eshipGrid.$inject = ['$http'];
+        function eshipGrid($http) {
+            var service,
+                needs,
+                stages;
+
+            stages = [
+                'Ideation Stage',
+                'Startup Stage',
+                'Scaling Stage'
+            ];
+
+            needs = [
+                'Business Planning',
+                'Financial Management',
+                'Funding',
+                'Legal Assistance',
+                'Real Estate',
+                'Research and Product Development',
+                'Sales and Marketing',
+                'Workforce/Networking'
+            ];
+
+            service = {
+                getEshipGrid: getEshipGrid
+            };
+
+            return service;
+
+            function getEshipGrid(gridPath) {
+                var csv,
+                    data;
+
+                return getEshipGridCsv(gridPath)
+                    .then(parseCsvFile);
+
+                function parseCsvFile(csv) {
+                    data = {'stages': {}, 'resources': {}};
+                    angular.forEach(csv.data, parseCsvRow);
+                    return data;
+                }
+
+                function parseCsvRow(row) {
+                    defineResource(row);
+
+                    angular.forEach(stages, function (stage) {
+                        if (row[stage] === 'Yes') {
+                            assignNeedsToStage(stage, row);
+                        };
+                    });
+                }
+
+                function assignNeedsToStage(stage, row) {
+                    if (undefined === data.stages[stage]) {
+                        data.stages[stage] = {};
+                    }
+                    angular.forEach(needs, function (need) {
+                        if (row[need] === 'Yes') {
+                            assignNeedToStage(stage, need, row['Resource']);
+                        }
+                    });
+                }
+
+                function assignNeedToStage(stage, need, resource) {
+                    if (undefined === data.stages[stage][need]) {
+                        data.stages[stage][need] = [];
+                    }
+                    data.stages[stage][need].push(resource);
+                }
+
+                function defineResource(row) {
+                    data.resources[row['Resource']] = {
+                        'Affiliation': row['Affiliation'],
+                        'Description': row['Description'],
+                        'Resource': row['Resource'],
+                        'URL': row['URL']
+                    };
+                }
+            }
+
+            function getEshipGridCsv(gridPath) {
+                return $http.get(gridPath)
+                    .then(getEshipGridCsvComplete)
+                    .catch(getEshipGridCsvFailed);
+
+                function getEshipGridCsvComplete(response) {
+                    return Papa.parse(response.data, {
+                        header: true,
+                        dynamicTyping: true,
+                        skipEmptyLines: true
+                    });
+                }
+
+                function getEshipGridCsvFailed(error) {
+                    console.warn(error);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
