@@ -22,6 +22,9 @@
         .panel-title > a:visited {
             color: #7f3f75;
         }
+        .panel-footer {
+            background-color: #fff;
+        }
         h1, h2, h3, h4 {
             color: #54565B;
         }
@@ -61,7 +64,7 @@
                 </div>
                 <div class="panel-body">{{ ::details['Description'] }}</div>
                 <div ng-if="details.needs" class="panel-footer">
-                    <strong>Needs:</strong>
+                    <strong><small>Needs:</small></strong>
                     <span class="label label-default" style="margin-right: 5px;" ng-repeat="(resourceNeed, active) in details.needs">{{ resourceNeed }}</span>
                 </div>
             </div>
