@@ -8,7 +8,18 @@
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
     <style type="text/css">
         body {
+            color: #444;
             margin-bottom: 50px;
+        }
+        [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+            display: none !important;
+        }
+        .panel-title > a {
+            color: #0f7689;
+        }
+        .panel-title > a:active,
+        .panel-title > a:visited {
+            color: #7f3f75;
         }
     </style>
 </head>
@@ -20,30 +31,32 @@
 
         <h2>Select Stage</h2>
         <div class="radio" ng-if="grid.stages" ng-repeat="(sidx, stage) in grid.fields.stages">
-            <label>
+            <label ng-cloak>
                 <input type="radio" name="selectedStage" ng-model="selected.stage" ng-value="stage">
-                {{ stage }}
+                {{ ::stage }}
             </label>
         </div>
 
         <div ng-if="selected.stage">
-            <h2>{{ selected.stage }} Needs</h2>
+            <h2 ng-cloak>{{ ::selected.stage }} Needs</h2>
 
             <div class="checkbox" ng-if="grid.stages[selected.stage]" ng-repeat="(need, resources) in grid.stages[selected.stage]">
-                <label>
-                    <input type="checkbox" ng-name="{{ need }}" ng-model="selected.needs[need]" ng-value="need">
-                    {{ need }}
+                <label ng-cloak>
+                    <input type="checkbox" ng-name="{{ ::need }}" ng-model="selected.needs[need]" ng-value="need">
+                    {{ ::need }}
                 </label>
             </div>
         </div>
 
         <div>
-            <h2 ng-if="showResources">Resources</h2>
+            <h2 ng-if="showResources" ng-cloak>Resources</h2>
 
-            <div ng-repeat="(resource, details) in selectedResources()">
-                <h4><a ng-href="{{ ::details['URL'] }}">{{ resource }}</a> ({{ details['Affiliation'] }})</h4>
-                <p>{{ ::details['Description'] }}</p>
-                <div ng-if="details.needs">
+            <div ng-repeat="(resource, details) in selectedResources()" ng-cloak class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title"><a ng-href="{{ ::details['URL'] }}">{{ resource }}</a> <small>({{ details['Affiliation'] }})</small></h4>
+                </div>
+                <div class="panel-body">{{ ::details['Description'] }}</div>
+                <div ng-if="details.needs" class="panel-footer">
                     <strong>Needs:</strong>
                     <span class="label label-default" style="margin-right: 5px;" ng-repeat="(resourceNeed, active) in details.needs">{{ resourceNeed }}</span>
                 </div>
