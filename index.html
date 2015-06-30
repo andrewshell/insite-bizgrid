@@ -4,17 +4,22 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>INSITE BizGrid</title>
+    <title>INSITE Entrepreneurship Guide</title>
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+    <style type="text/css">
+        body {
+            margin-bottom: 50px;
+        }
+    </style>
 </head>
 <body ng-controller="mainController">
     <div class="container">
         <div class="page-header">
-            <h1>INSITE BizGrid</h1>
+            <h1>INSITE Entrepreneurship Guide<br><small>Guide to UW-Madison and Community Entrepreneurship Resources</small></h1>
         </div>
 
         <h2>Select Stage</h2>
-        <div class="radio" ng-if="grid.stages" ng-repeat="(stage, needs) in grid.stages">
+        <div class="radio" ng-if="grid.stages" ng-repeat="(sidx, stage) in grid.fields.stages">
             <label>
                 <input type="radio" name="selectedStage" ng-model="selected.stage" ng-value="stage">
                 {{ stage }}
@@ -38,6 +43,10 @@
             <div ng-repeat="(resource, details) in selectedResources()">
                 <h4><a ng-href="{{ ::details['URL'] }}">{{ resource }}</a> ({{ details['Affiliation'] }})</h4>
                 <p>{{ ::details['Description'] }}</p>
+                <div ng-if="details.needs">
+                    <strong>Needs:</strong>
+                    <span class="label label-default" style="margin-right: 5px;" ng-repeat="(resourceNeed, active) in details.needs">{{ resourceNeed }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -71,6 +80,10 @@
                     angular.forEach($scope.grid.stages[$scope.selected.stage][need], function (resource) {
                         if (selected && undefined !== $scope.grid.resources[resource]) {
                             resources[resource] = $scope.grid.resources[resource];
+                            if (undefined === resources[resource].needs) {
+                                resources[resource].needs = {};
+                            }
+                            resources[resource].needs[need] = true;
                             $scope.showResources = true;
                         }
                     });
@@ -81,26 +94,7 @@
 
         eshipGrid.$inject = ['$http'];
         function eshipGrid($http) {
-            var service,
-                needs,
-                stages;
-
-            stages = [
-                'Ideation Stage',
-                'Startup Stage',
-                'Scaling Stage'
-            ];
-
-            needs = [
-                'Business Planning',
-                'Financial Management',
-                'Funding',
-                'Legal Assistance',
-                'Real Estate',
-                'Research and Product Development',
-                'Sales and Marketing',
-                'Workforce/Networking'
-            ];
+            var service;
 
             service = {
                 getEshipGrid: getEshipGrid
@@ -116,15 +110,38 @@
                     .then(parseCsvFile);
 
                 function parseCsvFile(csv) {
-                    data = {'stages': {}, 'resources': {}};
+                    data = {'stages': {}, 'resources': {}, 'fields': {}};
+                    parseCsvFields(csv.meta.fields);
                     angular.forEach(csv.data, parseCsvRow);
                     return data;
+                }
+
+                function parseCsvFields(fields) {
+                    var isStage = /stage$/i;
+                    angular.forEach(fields, function assignField(field) {
+                        if (undefined === data.fields.meta) {
+                            data.fields.meta = [];
+                        }
+                        if (undefined === data.fields.stages && null === field.match(isStage)) {
+                            data.fields.meta.push(field);
+                        } else if (null !== field.match(isStage)) {
+                            if (undefined === data.fields.stages) {
+                                data.fields.stages = [];
+                            }
+                            data.fields.stages.push(field);
+                        } else if (undefined !== data.fields.stages) {
+                            if (undefined === data.fields.needs) {
+                                data.fields.needs = [];
+                            }
+                            data.fields.needs.push(field);
+                        }
+                    });
                 }
 
                 function parseCsvRow(row) {
                     defineResource(row);
 
-                    angular.forEach(stages, function (stage) {
+                    angular.forEach(data.fields.stages, function (stage) {
                         if (row[stage] === 'Yes') {
                             assignNeedsToStage(stage, row);
                         };
@@ -135,7 +152,7 @@
                     if (undefined === data.stages[stage]) {
                         data.stages[stage] = {};
                     }
-                    angular.forEach(needs, function (need) {
+                    angular.forEach(data.fields.needs, function (need) {
                         if (row[need] === 'Yes') {
                             assignNeedToStage(stage, need, row['Resource']);
                         }
