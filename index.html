@@ -37,7 +37,7 @@
         </div>
 
         <h2>Select Stage</h2>
-        <div class="radio" ng-if="grid.stages" ng-repeat="(sidx, stage) in grid.fields.stages">
+        <div class="radio" ng-if="::grid.stages" ng-repeat="stage in ::grid.fields.stages">
             <label ng-cloak>
                 <input type="radio" name="selectedStage" ng-model="selected.stage" ng-value="stage">
                 {{ ::stage }}
@@ -47,9 +47,9 @@
         <div ng-if="selected.stage">
             <h2 ng-cloak>{{ ::selected.stage }} Needs</h2>
 
-            <div class="checkbox" ng-if="grid.stages[selected.stage]" ng-repeat="(need, resources) in grid.stages[selected.stage]">
+            <div class="checkbox" ng-repeat="need in ::grid.fields.needs">
                 <label ng-cloak>
-                    <input type="checkbox" ng-name="{{ ::need }}" ng-model="selected.needs[need]" ng-value="need">
+                    <input type="checkbox" ng-name="{{ ::need }}" ng-model="selected.needs[need]" ng-value="::need">
                     {{ ::need }}
                 </label>
             </div>
@@ -60,12 +60,12 @@
 
             <div ng-repeat="(resource, details) in selectedResources()" ng-cloak class="panel panel-default">
                 <div class="panel-heading">
-                    <h4 class="panel-title"><a ng-href="{{ ::details['URL'] }}">{{ resource }}</a> <small>({{ details['Affiliation'] }})</small></h4>
+                    <h4 class="panel-title"><a ng-href="{{ ::details['URL'] }}">{{ ::resource }}</a> <small>({{ ::details['Affiliation'] }})</small></h4>
                 </div>
                 <div class="panel-body">{{ ::details['Description'] }}</div>
-                <div ng-if="details.needs" class="panel-footer">
+                <div ng-if="::details.needs" class="panel-footer">
                     <strong><small>Needs:</small></strong>
-                    <span class="label label-default" style="margin-right: 5px;" ng-repeat="(resourceNeed, active) in details.needs">{{ resourceNeed }}</span>
+                    <span class="label label-default" style="margin-right: 5px;" ng-repeat="(resourceNeed, active) in details.needs">{{ ::resourceNeed }}</span>
                 </div>
             </div>
         </div>
