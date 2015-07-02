@@ -15,6 +15,13 @@
         [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
             display: none !important;
         }
+        .label {
+            display: inline-block;
+        }
+        .label-inverse {
+            background-color: #fff;
+            color: #444;
+        }
         .panel-title > a {
             color: #0f7689;
         }
@@ -64,8 +71,9 @@
                 </div>
                 <div class="panel-body">{{ ::details['Description'] }}</div>
                 <div ng-if="::details.needs" class="panel-footer">
-                    <strong><small>Needs:</small></strong>
-                    <span class="label label-default" style="margin-right: 5px;" ng-repeat="(resourceNeed, active) in details.needs">{{ ::resourceNeed }}</span>
+                    <ul class="list-inline" style="margin-bottom: 0;">
+                        <li><strong class="label label-inverse">Needs:</strong></li>
+                        <li ng-repeat="(resourceNeed, active) in details.needs"><span class="label label-default">{{ ::resourceNeed }}</span></li>
                 </div>
             </div>
         </div>
