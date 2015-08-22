@@ -32,27 +32,51 @@
         .panel-footer {
             background-color: #fff;
         }
+        .stage-name {
+            display: block;
+            font-weight: bold;
+            width: 60px
+        }
+        .stage-description {
+            display: block;
+        }
         h1, h2, h3, h4 {
             color: #54565B;
+        }
+        @media (max-width: 480px) {
+            .label {
+                max-width: 250px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
         }
     </style>
 </head>
 <body ng-controller="mainController">
     <div class="container">
         <div class="page-header">
-            <h1>INSITE Entrepreneurship Guide<br><small>Guide to UW-Madison and Community Entrepreneurship Resources</small></h1>
+            <h1>INSITE Entrepreneurship Guide<br><small>An interactive directory of UW-Madison and community entrepreneurship resources made possible in partnership with the UW-Madison Office of Corporate Relations, University Research Park, and the Wisconsin School of Business.</small></h1>
         </div>
 
-        <h2>Select Stage</h2>
-        <div class="radio" ng-if="::grid.stages" ng-repeat="stage in ::grid.fields.stages">
+        <h2>What stage of development am I at?</h2>
+        <ul class="list-group">
+        <li class="list-group-item radio" ng-if="::grid.stages" ng-repeat="stage in ::grid.fields.stages">
             <label ng-cloak>
                 <input type="radio" name="selectedStage" ng-model="selected.stage" ng-value="stage">
-                {{ ::stage }}
+                <span class="stage-name">{{ ::stageName(stage)[0] }}</span>
+                <span class="stage-description">{{ ::stageName(stage)[1] }}</span>
             </label>
-        </div>
+        </li>
+        </ul>
+
+        <p>Not sure where to begin? The Small Business Development Center or Wisconsin Economic Development Corporation may be able to help you.</p>
+
+        <p>SBDC Wisconsin Business AnswerLine - Counselors give free answers to your business start-up or management questions. Call 1-800-940-7232 or request help online at <a href="http://bus.wisc.edu/cped/sbdc/wbal">Wisconsin Business AnswerLine</a>.</p>
+
+        <p>WEDC Connect with WEDC business development specialists around the state to explore business growth opportunities. More at <a href="http://inwisconsin.com/grow/resources/regional-account-managers/">Regional Account Managers</a>.</p>
 
         <div ng-if="selected.stage">
-            <h2 ng-cloak>{{ ::selected.stage }} Needs</h2>
+            <h2 ng-cloak>What are you interested in?</h2>
 
             <div class="checkbox" ng-repeat="need in ::grid.fields.needs">
                 <label ng-cloak>
@@ -95,6 +119,7 @@
             }
             $scope.selectedResources = selectedResources;
             $scope.showResources = false;
+            $scope.stageName = stageName;
 
             eshipGrid.getEshipGrid('eship-grid.csv')
                 .then(function (grid) {
@@ -118,6 +143,20 @@
                 });
                 return resources;
             }
+
+            function stageName(stage) {
+                var expandedStages = {
+                    'Ideation Stage': ['Ideation', 'I am an entrepreneur with an idea'],
+                    'Startup Stage': ['Startup', 'I have created a business'],
+                    'Scaling Stage': ['Scaling', 'I am growing an existing company'],
+                };
+
+                if (undefined === expandedStages[stage]) {
+                    return [stage, ''];
+                } else {
+                    return expandedStages[stage];
+                }
+            }
         }
 
         eshipGrid.$inject = ['$http'];
@@ -125,7 +164,7 @@
             var service;
 
             service = {
-                getEshipGrid: getEshipGrid
+                getEshipGrid: getEshipGrid,
             };
 
             return service;
