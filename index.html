@@ -62,7 +62,7 @@
         <ul class="list-group">
         <li class="list-group-item radio" ng-if="::grid.stages" ng-repeat="stage in ::grid.fields.stages">
             <label ng-cloak>
-                <input type="radio" name="selectedStage" ng-model="selected.stage" ng-value="stage">
+                <input type="radio" ng-change="updateUrl()" name="selectedStage" ng-model="selected.stage" ng-value="stage">
                 <span class="stage-name">{{ ::stageName(stage)[0] }}</span>
                 <span class="stage-description">{{ ::stageName(stage)[1] }}</span>
             </label>
@@ -80,7 +80,7 @@
 
             <div class="checkbox" ng-repeat="need in ::grid.fields.needs">
                 <label ng-cloak>
-                    <input type="checkbox" ng-name="{{ ::need }}" ng-model="selected.needs[need]" ng-value="::need">
+                    <input type="checkbox" ng-change="updateUrl()" ng-name="{{ ::need }}" ng-model="selected.needs[need]" ng-value="::need">
                     {{ ::need }}
                 </label>
             </div>
@@ -101,18 +101,19 @@
                 </div>
             </div>
         </div>
+
     </div>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.1/papaparse.min.js"></script>
     <script type="text/javascript">
         var app = angular
-            .module('app', [])
+            .module('app', ['ui.router'])
             .controller('mainController', mainController)
             .factory('eshipGrid', eshipGrid)
             ;
 
-        mainController.$inject = ['$scope', 'eshipGrid'];
-        function mainController ($scope, eshipGrid) {
+        mainController.$inject = ['$location', '$scope', 'eshipGrid'];
+        function mainController ($location, $scope, eshipGrid) {
             $scope.selected = {
                 stage: '',
                 needs: {}
@@ -120,10 +121,19 @@
             $scope.selectedResources = selectedResources;
             $scope.showResources = false;
             $scope.stageName = stageName;
+            $scope.updateUrl = updateUrl;
 
             eshipGrid.getEshipGrid('eship-grid.csv')
                 .then(function (grid) {
+                    var slugs;
                     $scope.grid = grid;
+                    slugs = $location.path().split('/');
+                    if (undefined !== slugs[1]) {
+                         updateStageFromSlug(slugs[1]);
+                    }
+                    if (undefined !== slugs[2]) {
+                        updateNeedsFromSlug(slugs[2]);
+                    }
                 });
 
             function selectedResources() {
@@ -157,10 +167,64 @@
                     return expandedStages[stage];
                 }
             }
+
+            function updateUrl() {
+                var stage, needs = [];
+                if (undefined === $scope.selected.stage) {
+                    return;
+                }
+                stage = createSlug($scope.selected.stage);
+                angular.forEach($scope.selected.needs, function (selected, need) {
+                    if (selected) {
+                        needs.push(createSlug(need, 3));
+                    }
+                });
+                if (0 === needs.length) {
+                    //$state.go('stage', {'stage': stage});
+                    $location.path('/' + stage + '/').replace();
+                } else {
+                    //$state.go('needs', {'stage': stage, 'needs' : needs.join()});
+                    $location.path('/' + stage + '/' + needs.join() + '/').replace();
+                }
+            }
+
+            function updateStageFromSlug(slug) {
+                var stageSlug;
+                angular.forEach($scope.grid.fields.stages, function (stage) {
+                    stageSlug = createSlug(stage);
+                    if (stageSlug === slug) {
+                        $scope.selected.stage = stage;
+                    }
+                });
+            }
+
+            function updateNeedsFromSlug(slug) {
+                var slugParts = {}, needSlug;
+                angular.forEach(slug.split(','), function (slugPart) {
+                    slugParts[slugPart] = true;
+                });
+                angular.forEach($scope.grid.fields.needs, function (need) {
+                    needSlug = createSlug(need, 3);
+                    if (undefined !== slugParts[needSlug]) {
+                        $scope.selected.needs[need] = true;
+                    }
+                });
+            }
+
+            function createSlug(term, max) {
+                var slug, splitTerms;
+                splitTerms = term.split(' ');
+                slug = splitTerms[0].toLowerCase();
+                if (undefined === max) {
+                    return slug;
+                } else {
+                    return slug.substr(0, max);
+                }
+            }
         }
 
-        eshipGrid.$inject = ['$http'];
-        function eshipGrid($http) {
+        eshipGrid.$inject = ['$http', '$q'];
+        function eshipGrid($http, $q) {
             var service;
 
             service = {
@@ -173,8 +237,12 @@
                 var csv,
                     data;
 
-                return getEshipGridCsv(gridPath)
-                    .then(parseCsvFile);
+                if (undefined === data) {
+                    return getEshipGridCsv(gridPath)
+                        .then(parseCsvFile);
+                } else {
+                    return $q.when(data);
+                }
 
                 function parseCsvFile(csv) {
                     data = {'stages': {}, 'resources': {}, 'fields': {}};
