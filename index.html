@@ -58,36 +58,38 @@
             <h1>INSITE Entrepreneurship Guide<br><small>An interactive directory of UW-Madison and community entrepreneurship resources made possible in partnership with the UW-Madison Office of Corporate Relations, University Research Park, and the Wisconsin School of Business.</small></h1>
         </div>
 
-        <h2>What stage of development am I at?</h2>
-        <ul class="list-group">
-        <li class="list-group-item radio" ng-if="::grid.stages" ng-repeat="stage in ::grid.fields.stages">
-            <label ng-cloak>
-                <input type="radio" ng-change="updateUrl()" name="selectedStage" ng-model="selected.stage" ng-value="stage">
-                <span class="stage-name">{{ ::stageName(stage)[0] }}</span>
-                <span class="stage-description">{{ ::stageName(stage)[1] }}</span>
-            </label>
-        </li>
-        </ul>
-
-        <p>Not sure where to begin? The Small Business Development Center or Wisconsin Economic Development Corporation may be able to help you.</p>
-
-        <p>SBDC Wisconsin Business AnswerLine - Counselors give free answers to your business start-up or management questions. Call 1-800-940-7232 or request help online at <a href="http://bus.wisc.edu/cped/sbdc/wbal">Wisconsin Business AnswerLine</a>.</p>
-
-        <p>WEDC Connect with WEDC business development specialists around the state to explore business growth opportunities. More at <a href="http://inwisconsin.com/grow/resources/regional-account-managers/">Regional Account Managers</a>.</p>
-
-        <div ng-if="selected.stage">
-            <h2 ng-cloak>What are you interested in?</h2>
-
-            <div class="checkbox" ng-repeat="need in ::grid.fields.needs">
+        <div class="hidden-print">
+            <h2>What stage of development am I at?</h2>
+            <ul class="list-group">
+            <li class="list-group-item radio" ng-if="::grid.stages" ng-repeat="stage in ::grid.fields.stages">
                 <label ng-cloak>
-                    <input type="checkbox" ng-change="updateUrl()" ng-name="{{ ::need }}" ng-model="selected.needs[need]" ng-value="::need">
-                    {{ ::need }}
+                    <input type="radio" ng-change="updateUrl()" name="selectedStage" ng-model="selected.stage" ng-value="stage">
+                    <span class="stage-name">{{ ::stageName(stage)[0] }}</span>
+                    <span class="stage-description">{{ ::stageName(stage)[1] }}</span>
                 </label>
+            </li>
+            </ul>
+
+            <p>Not sure where to begin? The Small Business Development Center or Wisconsin Economic Development Corporation may be able to help you.</p>
+
+            <p>SBDC Wisconsin Business AnswerLine - Counselors give free answers to your business start-up or management questions. Call 1-800-940-7232 or request help online at <a href="http://bus.wisc.edu/cped/sbdc/wbal">Wisconsin Business AnswerLine</a>.</p>
+
+            <p>WEDC Connect with WEDC business development specialists around the state to explore business growth opportunities. More at <a href="http://inwisconsin.com/grow/resources/regional-account-managers/">Regional Account Managers</a>.</p>
+
+            <div ng-if="selected.stage">
+                <h2 ng-cloak>What are you interested in?</h2>
+
+                <div class="checkbox" ng-repeat="need in ::grid.fields.needs">
+                    <label ng-cloak>
+                        <input type="checkbox" ng-change="updateUrl()" ng-name="{{ ::need }}" ng-model="selected.needs[need]" ng-value="::need">
+                        {{ ::need }}
+                    </label>
+                </div>
             </div>
         </div>
 
         <div>
-            <h2 ng-if="showResources" ng-cloak>Resources</h2>
+            <h2 ng-if="showResources" ng-cloak><span class="visible-print-inline">{{ selected.stage }} </span>Resources</h2>
 
             <div ng-repeat="(resource, details) in selectedResources()" ng-cloak class="panel panel-default">
                 <div class="panel-heading">
